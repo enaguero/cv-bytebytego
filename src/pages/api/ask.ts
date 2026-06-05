@@ -7,7 +7,7 @@ export const prerender = false;
 // Simple in-memory rate limit. Resets when the serverless instance recycles —
 // good enough for a CV demo, not for real production. Teach this.
 const callsToday = new Map<string, { count: number; resetAt: number }>();
-const DAILY_LIMIT = Number(import.meta.env.ASK_DAILY_LIMIT ?? 100);
+const DAILY_LIMIT = Number(process.env.ASK_DAILY_LIMIT ?? 100);
 
 function ipKey(req: Request): string {
   const fwd = req.headers.get("x-forwarded-for");
@@ -41,12 +41,12 @@ ${asAssistantContext()}
 ---`;
 
 export const POST: APIRoute = async ({ request }) => {
-  const apiKey = import.meta.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return Response.json(
       {
         error:
-          "Missing ANTHROPIC_API_KEY. Set it in Vercel env vars (see README).",
+          "Missing ANTHROPIC_API_KEY. Set it in your deploy env (Docker --env / Vercel env vars).",
       },
       { status: 503 },
     );

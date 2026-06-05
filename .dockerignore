@@ -1,0 +1,32 @@
+# Keep the build context lean — only source + manifests should ship.
+node_modules
+dist
+.astro
+.vercel
+.output
+
+# Local dev
+.env
+.env.local
+.env.*.local
+
+# Git & editors
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+
+# CI artifacts
+*.log
+npm-debug.log*
+coverage
+
+# Docker self
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.*.yml
+
+# Docs that the image doesn't need
+README.md

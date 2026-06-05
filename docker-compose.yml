@@ -1,0 +1,22 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cv-bytebytego:local
+    container_name: cv-bytebytego
+    restart: unless-stopped
+    ports:
+      - "4321:4321"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 4321
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:4321/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
