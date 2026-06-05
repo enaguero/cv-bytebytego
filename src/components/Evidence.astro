@@ -1,0 +1,73 @@
+---
+import { teachingEvidence, openSource, teachingPhilosophy } from "~/data/cv";
+---
+
+<section class="mx-auto max-w-6xl px-6 py-16 sm:py-20">
+  <p class="section-title">Receipts</p>
+  <h2 class="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">
+    What I've actually shipped & taught.
+  </h2>
+
+  <div class="mt-10 grid gap-6 lg:grid-cols-3">
+    {
+      teachingEvidence.map((e) => (
+        <a
+          href={e.link}
+          target="_blank"
+          rel="noopener"
+          class="lg:col-span-2 group rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/70 p-6 backdrop-blur transition hover:border-[color:var(--color-accent)]/60"
+        >
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="text-lg font-semibold group-hover:text-[color:var(--color-accent)] transition">
+              {e.title}
+            </h3>
+            <span class="chip">{e.role}</span>
+          </div>
+          <p class="mt-3 text-sm leading-relaxed text-[color:var(--color-text-muted)]">
+            {e.description}
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            {e.metrics.map((m) => (
+              <span class="chip text-[color:var(--color-text)]">{m}</span>
+            ))}
+          </div>
+          <p class="mt-4 font-mono text-xs text-[color:var(--color-text-muted)]">
+            <span class="text-[color:var(--color-accent-2)]">↗</span>{" "}
+            {e.link.replace("https://", "")}
+          </p>
+        </a>
+      ))
+    }
+
+    <div class="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/70 p-6">
+      <p class="text-xs uppercase tracking-widest text-[color:var(--color-accent)]">
+        Open source
+      </p>
+      <p class="mt-2 text-5xl font-bold tracking-tight">
+        {openSource.publicRepos}
+      </p>
+      <p class="text-sm text-[color:var(--color-text-muted)]">
+        public repositories on GitHub
+      </p>
+      <div class="mt-5 flex flex-wrap gap-2">
+        {openSource.highlights.map((h) => <span class="chip">{h}</span>)}
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-12 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-bg-soft)]/70 p-6 sm:p-8">
+    <p class="section-title">Teaching philosophy</p>
+    <ul class="mt-4 grid gap-3 sm:grid-cols-2">
+      {
+        teachingPhilosophy.map((p, i) => (
+          <li class="flex gap-3 text-sm leading-relaxed">
+            <span class="mt-0.5 font-mono text-[color:var(--color-accent-2)]">
+              0{i + 1}
+            </span>
+            <span>{p}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
