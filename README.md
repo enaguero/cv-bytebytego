@@ -43,32 +43,49 @@ docker-compose.yml       ← one-command local run
 
 To change the CV content, edit `src/data/cv.ts` and rebuild the image.
 
-## Local development (no Docker)
+## Quickstart — see it on localhost in one command
 
 ```bash
-npm install
-cp .env.example .env       # then fill in ANTHROPIC_API_KEY
-npm run dev                # http://localhost:4321
+make up        # builds the image, starts the container, streams logs
+               # → http://localhost:4321
 ```
 
-The chat returns a 503 with a clear message if `ANTHROPIC_API_KEY` is missing.
-The static page works without it.
+Ctrl-C to stop. First run creates `.env` from `.env.example` automatically;
+you only need to drop in a real `ANTHROPIC_API_KEY` for the chat to work.
 
-## Docker — local
+### All `make` targets
 
-One command (Docker Compose):
+```bash
+make            # show help (this list)
+make up         # build + start, foreground, Ctrl-C to stop
+make up-d       # build + start, detached, returns your prompt
+make down       # stop and remove the container
+make restart    # down + up-d
+make logs       # tail container logs
+make ps         # show container status
+make sh         # shell into the running container
+make health     # curl the site and print HTTP status + page title
+make clean      # down + remove the image
+make dev        # native Astro dev server (no Docker, hot reload)
+```
+
+### Without make (plain docker compose)
 
 ```bash
 cp .env.example .env       # fill in ANTHROPIC_API_KEY
 docker compose up --build  # http://localhost:4321
 ```
 
-Or with plain Docker:
+### Without docker (plain Node)
 
 ```bash
-docker build -t cv-bytebytego:local .
-docker run --rm -p 4321:4321 --env-file .env cv-bytebytego:local
+npm install
+cp .env.example .env       # fill in ANTHROPIC_API_KEY
+npm run dev                # http://localhost:4321 with hot reload
 ```
+
+The chat returns a 503 with a clear message if `ANTHROPIC_API_KEY` is missing.
+The static page works without it.
 
 ### What's in the image
 
