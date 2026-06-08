@@ -2,38 +2,39 @@
 import { tracks } from "~/data/cv";
 
 const samplePrompts = [
-  "Why are you a fit for the System Design track?",
-  "How would you teach Agentic AI Coding on day 1?",
-  "What proves you can teach a live cohort?",
-  "What part of AI Automation would you start with?",
+  "What's Erwin's teaching journey?",
+  "How would Erwin start the System Design track?",
+  "What does he do when an agent goes off-rails?",
+  "Where is he still learning?",
 ];
 ---
 
 <section id="ask" class="mx-auto max-w-6xl px-6 py-16 sm:py-20">
   <div class="grid gap-10 lg:grid-cols-5">
     <div class="lg:col-span-2">
-      <p class="section-title">Live demo</p>
-      <h2 class="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">
-        Ask my CV anything.
+      <p class="section-title">A small live demo</p>
+      <h2 class="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight">
+        Ask my CV a question.
       </h2>
       <p class="mt-4 text-[color:var(--color-text-muted)] leading-relaxed">
-        This widget hits a Vercel serverless function that calls the Claude API
-        with my CV as system context. It streams responses, is rate-limited per
-        IP per day, and the entire source is on GitHub.
+        Rather than just describing the AI tracks, here is a tiny example: the
+        chat on the right is a Vercel serverless function calling Claude with
+        my CV as system context. It's the same pattern I'd use in lesson one of
+        the Agentic AI track — small enough to read in one sitting.
       </p>
 
       <ul class="mt-6 space-y-2 text-sm">
         <li class="flex gap-2">
           <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-[color:var(--color-accent)]"></span>
-          <span>~50 lines of API code — readable, teachable, deployable.</span>
+          <span>About 50 lines of API code, readable in one sitting.</span>
         </li>
         <li class="flex gap-2">
           <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-[color:var(--color-accent-2)]"></span>
-          <span>Same pattern works for docs Q&A, support bots, internal tools.</span>
+          <span>The same shape works for docs Q&amp;A, support bots, internal tools.</span>
         </li>
         <li class="flex gap-2">
-          <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-[color:var(--color-accent-3)]"></span>
-          <span>Failure modes (rate limits, hallucination, latency) are part of the lesson.</span>
+          <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-[color:var(--color-accent-warm)]"></span>
+          <span>Failure modes — rate limits, hallucination, latency — are part of the lesson, not edge cases.</span>
         </li>
       </ul>
 
@@ -81,9 +82,10 @@ const samplePrompts = [
           aria-live="polite"
         >
           <div class="chat-bubble chat-bubble-assistant">
-            Hi — I'm a Claude-powered assistant grounded in Erwin's CV. Ask me
-            about his teaching experience, the tracks he wants to lead, or how
-            this site was built.
+            Hi — I'm a small Claude-powered assistant with Erwin's CV in
+            context. Ask me about his teaching journey, the areas he's hoping
+            to teach at ByteByteGo, or where he's still learning. I'll say so
+            when I don't know.
           </div>
         </div>
 
@@ -110,10 +112,6 @@ const samplePrompts = [
           </button>
         </form>
       </div>
-      <p class="mt-3 text-xs text-[color:var(--color-text-muted)]">
-        Rate limited to 100 messages / day across all visitors. If it stops
-        responding, that's the limit (or a missing API key — see the README).
-      </p>
     </div>
   </div>
 </section>
@@ -197,7 +195,7 @@ const samplePrompts = [
     log.innerHTML = "";
     addBubble(
       "assistant",
-      "Cleared. Ask away — I'm grounded in Erwin's CV and won't make stuff up.",
+      "Cleared. Ask away — I'm grounded in Erwin's CV and will say when I don't know.",
     );
   });
 

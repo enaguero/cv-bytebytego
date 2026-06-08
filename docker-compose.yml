@@ -8,12 +8,15 @@ services:
     restart: unless-stopped
     ports:
       - "4321:4321"
-    env_file:
-      - .env
+    # Secrets come from the shell (via direnv / .envrc), not from a .env file.
+    # `${VAR:?...}` makes compose fail fast with a clear message if the key
+    # isn't exported. Run `direnv allow` after editing .envrc, or `source .envrc`.
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: 4321
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY is not exported. Did you `direnv allow` (or `source .envrc`)?}
+      ASK_DAILY_LIMIT: ${ASK_DAILY_LIMIT:-100}
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:4321/"]
       interval: 30s

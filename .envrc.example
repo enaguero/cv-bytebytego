@@ -1,0 +1,16 @@
+# Copy this file to `.envrc` (which is gitignored) and put your real key in it.
+#
+# With direnv installed, `cd` into the project directory and run `direnv allow`
+# once — the variables below will then be exported into your shell automatically.
+#
+# Without direnv:  source this file before `make up` / `make dev`.
+#
+#   source .envrc
+#
+# docker-compose.yml reads these from the shell at run time (no .env file
+# baked into the image, and no secret committed to git).
+
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Optional. Per-IP daily cap for the public /api/ask endpoint. Defaults to 100.
+# export ASK_DAILY_LIMIT="100"

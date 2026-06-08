@@ -1,5 +1,10 @@
 # cv-bytebytego — Makefile wrapping docker compose for a one-command local run.
 #
+# Secret handling: the chat endpoint needs ANTHROPIC_API_KEY exported in the
+# shell. The recommended way is direnv with .envrc — see .envrc.example.
+# docker-compose.yml substitutes the value at run time, so the secret never
+# touches the image or the git repo.
+#
 # Usage:
 #   make            # same as `make help`
 #   make up         # build + start, foreground (you see logs, Ctrl-C to stop)
@@ -30,35 +35,43 @@ help: ## Show this help
 	@echo ""
 	@echo "  Default URL: $(URL)"
 	@echo ""
+	@echo "  Secret: ANTHROPIC_API_KEY must be exported in your shell."
+	@echo "  Recommended: copy .envrc.example to .envrc, edit, then 'direnv allow'."
+	@echo ""
 
 # ---------------------------------------------------------------------------
-# .env bootstrap — never let the chat 503 just because of a missing file.
-# Creates .env from .env.example on first run and warns about the API key.
+# Guardrail — fail with a useful message if the key isn't exported.
+# Docker Compose already does this via ${VAR:?...}, but catching it here
+# means `make dev` (native, no compose) also gets a clean error.
 # ---------------------------------------------------------------------------
-.env:
-	@if [ ! -f .env ]; then \
-		echo "→ Creating .env from .env.example"; \
-		cp .env.example .env; \
+.PHONY: check-env
+check-env:
+	@if [ -z "$$ANTHROPIC_API_KEY" ]; then \
 		echo ""; \
-		echo "  ⚠  Edit .env and set ANTHROPIC_API_KEY before the chat will work."; \
-		echo "     Get a key at https://console.anthropic.com/"; \
+		echo "  ✗ ANTHROPIC_API_KEY is not exported in your shell."; \
 		echo ""; \
+		echo "    1. cp .envrc.example .envrc"; \
+		echo "    2. Edit .envrc and paste your real key from https://console.anthropic.com/"; \
+		echo "    3. With direnv:  direnv allow"; \
+		echo "       Without:      source .envrc"; \
+		echo ""; \
+		exit 1; \
 	fi
 
 # ---------------------------------------------------------------------------
 # Primary targets
 # ---------------------------------------------------------------------------
 .PHONY: build
-build: .env ## Build the Docker image
+build: check-env ## Build the Docker image
 	$(COMPOSE) build
 
 .PHONY: up
-up: .env ## Build + start in the foreground (logs visible, Ctrl-C to stop)
+up: check-env ## Build + start in the foreground (logs visible, Ctrl-C to stop)
 	@echo "→ Starting at $(URL)"
 	$(COMPOSE) up --build
 
 .PHONY: up-d
-up-d: .env ## Build + start detached (returns your prompt)
+up-d: check-env ## Build + start detached (returns your prompt)
 	$(COMPOSE) up --build -d
 	@echo ""
 	@echo "  ✓ Running at $(URL)"
@@ -100,6 +113,6 @@ clean: down ## Stop containers AND remove the image
 # Native (no Docker) — useful for fast iteration without rebuilds
 # ---------------------------------------------------------------------------
 .PHONY: dev
-dev: .env ## Run Astro dev server locally (no Docker, hot reload)
+dev: check-env ## Run Astro dev server locally (no Docker, hot reload)
 	npm install
 	npm run dev

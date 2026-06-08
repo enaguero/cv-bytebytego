@@ -3,15 +3,15 @@ import { tracks } from "~/data/cv";
 ---
 
 <section id="tracks" class="mx-auto max-w-6xl px-6 py-16 sm:py-20">
-  <div class="flex items-end justify-between gap-6">
-    <div>
-      <p class="section-title">Tracks I want to teach</p>
-      <h2 class="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">
-        Three. Focused. Honest about each.
-      </h2>
-    </div>
-    <p class="hidden sm:block max-w-md text-sm text-[color:var(--color-text-muted)]">
-      Each card includes the angle I'd teach from and the receipts that back it up.
+  <div class="max-w-3xl">
+    <p class="section-title">Areas I'd love to teach</p>
+    <h2 class="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight">
+      Three tracks — with honest framing on each.
+    </h2>
+    <p class="mt-4 text-[color:var(--color-text-muted)] leading-relaxed">
+      I won't claim mastery in areas where I'm still learning. For each track
+      below I've tried to be specific about what I already teach confidently,
+      what I'm actively studying, and what I'd bring as an instructor.
     </p>
   </div>
 
@@ -26,7 +26,7 @@ import { tracks } from "~/data/cv";
             <span class="chip">{t.id.replace(/-/g, " ")}</span>
           </div>
           <h3 class="mt-4 text-xl font-semibold">{t.title}</h3>
-          <p class="mt-1 text-sm text-[color:var(--color-accent)]">
+          <p class="mt-1 text-sm text-[color:var(--color-accent)] leading-snug">
             {t.tagline}
           </p>
           <p class="mt-3 text-sm leading-relaxed text-[color:var(--color-text-muted)]">
@@ -40,9 +40,6 @@ import { tracks } from "~/data/cv";
               </li>
             ))}
           </ul>
-          <p class="mt-5 rounded-md bg-black/30 border border-[color:var(--color-border)] p-3 text-xs font-mono text-[color:var(--color-text-muted)]">
-            <span class="text-[color:var(--color-accent)]">proof:</span> {t.proof}
-          </p>
         </article>
       ))
     }

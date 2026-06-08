@@ -1,0 +1,384 @@
+---
+import Layout from "~/layouts/Layout.astro";
+
+const title = "Sample formative review — Erwin Agüero";
+const description =
+  "An English translation of a formative review I wrote for a bootcamp student's final project. The original was in Spanish and is shared with the student's consent.";
+---
+
+<Layout title={title} description={description}>
+  <section class="mx-auto max-w-3xl px-6 pt-14 pb-8">
+    <a
+      href="/"
+      class="inline-flex items-center gap-1 text-sm text-[color:var(--color-text-muted)] hover:text-white transition"
+    >
+      <span aria-hidden="true">←</span> Back to the home page
+    </a>
+
+    <p class="section-title mt-8">A sample formative review</p>
+    <h1 class="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight">
+      Formative review of a bootcamp final project — translated from Spanish.
+    </h1>
+    <p class="mt-4 text-[color:var(--color-text-muted)] leading-relaxed">
+      This is the kind of review I write for learners. The original was sent
+      to a 4Geeks student in Spanish about their capstone (a Flask + React
+      project called ShadowMap); below is an English translation, kept as
+      close as possible to the original tone. Shared with the student's
+      consent. The intent is not to grade — it's to give the learner a
+      prioritised path back to good standing.
+    </p>
+    <p class="mt-4 text-sm text-[color:var(--color-text-muted)]">
+      Original (Spanish):
+      <a
+        class="text-[color:var(--color-accent-2)] hover:text-white underline"
+        href="https://github.com/enaguero/shadowmap-review/blob/review/feedback-formativo/docs/REVISION_CRITICA.md"
+        target="_blank"
+        rel="noopener"
+      >
+        github.com/enaguero/shadowmap-review
+      </a>
+    </p>
+  </section>
+
+  <article class="mx-auto max-w-3xl px-6 pb-24 prose-review">
+    <h2>Formative Review — ShadowMap</h2>
+
+    <blockquote>
+      <p>
+        Hi. This document is a review of your project <strong>designed so you
+        learn</strong>, not so you get discouraged. There are things that are
+        really well done, things that are one step away from being great, and
+        some that are worth reviewing before showing the project to an
+        employer.
+      </p>
+      <p><strong>How to read it:</strong></p>
+      <ol>
+        <li>Start with <strong>what's working well</strong> — because you've earned it.</li>
+        <li>Continue with <strong>what has the most impact if you fix it</strong> — the highest effort-to-reward points.</li>
+        <li>Then the <strong>review by dimensions</strong> with examples from your own code.</li>
+        <li>At the end you have a <strong>prioritised action plan</strong> and a <strong>reference grade</strong>.</li>
+      </ol>
+      <p>
+        If something isn't clear or you disagree, perfect — that means it's
+        worth discussing in class.
+      </p>
+    </blockquote>
+
+    <h2>1. What's working well</h2>
+    <p>Before any suggestions, there are decisions you made correctly and deserve recognition:</p>
+    <ul>
+      <li><strong>Password hashing with <code>werkzeug.security</code></strong> (<code>routes_auth.py:28</code>, <code>routes.py:33</code>). You never stored passwords in plain text — non-negotiable, and you did it right from the start.</li>
+      <li><strong>Using Blueprints in Flask</strong> — you separated <code>auth_api</code>, <code>routes_api</code>, <code>premium_api</code>, etc. This is the structure of a serious Flask project.</li>
+      <li><strong>Well-designed relational models</strong> — the <code>Route</code> ↔ <code>RoutePoint</code> relationship with <code>cascade="all, delete-orphan"</code> (<code>models.py:130-135</code>) shows you understand the ORM and lifecycle management.</li>
+      <li><strong>Sensitive endpoints protected with <code>@jwt_required()</code></strong> — the decorator appears where it should.</li>
+      <li><strong><code>ProtectedRoute</code> for private routes in React</strong> (<code>ProtectedRoute.jsx:7</code>) — correct architectural piece.</li>
+      <li><strong>Visual identity and narrative</strong> — the README, theming, names ("Dark Route", "Active Mission"), avatars with lore… this is what sets a memorable project apart from a forgettable one. <strong>This is real talent, not taught.</strong></li>
+    </ul>
+    <blockquote>
+      <p>When you finish reviewing the improvements, come back to this section. It will remind you where you're starting from.</p>
+    </blockquote>
+
+    <h2>2. What has the most impact if you fix it</h2>
+    <p>These observations have the best effort-to-benefit ratio. Most can be resolved in a few hours and significantly raise the perceived quality of your project.</p>
+
+    <h3>2.1 Two Flask applications are configured but only one is used</h3>
+    <p>In <code>src/api/__init__.py</code> you define a <code>create_app()</code>:</p>
+    <pre><code>{`# src/api/__init__.py:18
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///shadowmap.db"
+...
+from src.api.routes import api
+app.register_blueprint(api, url_prefix="/api")`}</code></pre>
+    <p>And in <code>src/api/app.py</code> you define a different <code>create_app()</code>:</p>
+    <pre><code>{`# src/api/app.py:26
+DB_PATH = os.path.join(BASE_DIR, "instance", "database.db")
+...
+app.register_blueprint(auth_api, url_prefix="/api")
+app.register_blueprint(routes_api, url_prefix="/api")
+# ...8 more blueprints`}</code></pre>
+    <p>They point to different databases and register different blueprints. Probably one was your first attempt and the other your final version. I suggest <strong>keeping <code>app.py</code></strong> (the more complete one) and removing <code>__init__.py</code> as a factory, leaving only what's needed for <code>src/api/</code> to remain a package.</p>
+
+    <h3>2.2 <code>routes.py</code> defines login endpoints with a test token</h3>
+    <pre><code>{`# src/api/routes.py:58
+return jsonify({
+    "token": "fake-token",
+    "user": user.serialize()
+}), 200`}</code></pre>
+    <p>This file <strong>is not registered</strong> in <code>app.py</code>, so it never executes. But the problem is: if someone (you, in a week) registers it accidentally, real authentication gets lost. You already have the proper implementation in <code>routes_auth.py</code>, so you can safely delete this one.</p>
+
+    <h3>2.3 Premium activation fails at runtime</h3>
+    <pre><code>{`# src/api/routes_premium.py:21
+user.is_premium = True`}</code></pre>
+    <p>The <code>is_premium</code> field is not defined in your <code>User</code> model (<code>models.py:11-33</code>). When a user clicks "Activate Premium", the backend will throw <code>AttributeError</code>. The good news is the fix is straightforward:</p>
+    <ol>
+      <li>Add the field to the model: <code>is_premium = db.Column(db.Boolean, default=False, nullable=False)</code></li>
+      <li>Create the migration with Flask-Migrate.</li>
+      <li>Delete <code>src/api/premium.py</code> (it's a duplicate with a broken import: uses <code>from api.models</code> instead of <code>from src.api.models</code>).</li>
+    </ol>
+
+    <h3>2.4 Some actions the frontend calls don't exist yet</h3>
+    <p>In these views, actions are invoked that aren't defined:</p>
+    <ul>
+      <li><code>addPlace.jsx:26</code> → <code>actions.createPlace(...)</code></li>
+      <li><code>editPlace.jsx:48</code> → <code>actions.updatePlace(...)</code></li>
+      <li><code>placeDetails.jsx:30</code> → <code>actions.deletePlace(...)</code></li>
+      <li><code>RouteCreator.jsx:16</code> → <code>actions.publishRoute(...)</code></li>
+    </ul>
+    <p>When they execute, they fail silently because <code>actions.createPlace</code> is <code>undefined</code>. You have two valid paths:</p>
+    <ul>
+      <li><strong>Path A (finish what you started):</strong> implement these actions in <code>flux.js</code> following the same pattern as <code>login</code> or <code>saveRouteLocal</code>.</li>
+      <li><strong>Path B (honest scope):</strong> if they don't fit your delivery, temporarily remove the views from the router in <code>layout.jsx</code>. Better to have fewer working features than more broken ones.</li>
+    </ul>
+    <p>Either path is perfectly legitimate. What I don't recommend is leaving it as-is.</p>
+
+    <h3>2.5 Two authentication systems coexist</h3>
+    <ul>
+      <li><code>src/context/AuthContext.jsx</code> + <code>src/services/authService.js</code> (Context + custom hooks).</li>
+      <li><code>src/front/js/store/appContext.jsx</code> + <code>src/front/js/store/flux.js</code> (4Geeks Flux pattern).</li>
+    </ul>
+    <p>Both define <code>token</code>, <code>user</code>, <code>login</code>, <code>logout</code>… but <strong>the project only uses the second one</strong>. The first is orphaned. When a teammate (or you in six months) tries to understand the authority, it's confusing. <strong>My recommendation:</strong> pick one and delete the other. The Flux one is already integrated throughout the app, so probably quickest to remove <code>AuthContext</code> and <code>authService</code>.</p>
+    <blockquote>
+      <p>Note: in the future, on professional projects, the Context + hooks pattern (which you had in <code>AuthContext.jsx</code>) tends to be more modern and clean than Flux. Your instinct was on the right track.</p>
+    </blockquote>
+
+    <h3>2.6 <code>JWT_SECRET_KEY</code> is hardcoded</h3>
+    <pre><code>{`# src/api/app.py:30
+app.config["JWT_SECRET_KEY"] = "super-secret-key"`}</code></pre>
+    <p>Anyone with repo access can forge valid tokens for any user. Change this first:</p>
+    <pre><code>{`app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")`}</code></pre>
+    <p>And add the variable to <code>.env.example</code>. A 30-second change that moves the security dimension from level 1 to level 2.</p>
+
+    <h3>2.7 CORS configuration isn't quite correct</h3>
+    <pre><code>{`# src/api/app.py:35
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True, ...)`}</code></pre>
+    <p>The CORS spec <strong>forbids</strong> the combination <code>origins="*"</code> + <code>supports_credentials=True</code>. Today it "works" because your frontend doesn't send cookies, but the day you add something with credentials it will break mysteriously. Better be explicit:</p>
+    <pre><code>{`CORS(
+    app,
+    resources={r"/*": {"origins": [
+        "http://localhost:3000",
+        os.getenv("FRONTEND_URL"),
+    ]}},
+    supports_credentials=True,
+)`}</code></pre>
+
+    <h3>2.8 Missing ownership verification in sensitive operations</h3>
+    <p>Example in POIs:</p>
+    <pre><code>{`# src/api/routes_pois.py:65
+@pois_api.route("/pois/<int:poi_id>", methods=["PUT"])
+@jwt_required()
+def update_poi(poi_id):
+    poi = POI.query.get(poi_id)
+    if not poi:
+        return jsonify({"message": "POI not found"}), 404
+    # ...`}</code></pre>
+    <p>The <code>@jwt_required()</code> decorator ensures the user is authenticated, but not that they <strong>own</strong> the resource. Right now any logged-in user can modify or delete any POI in the system. Same issue in <code>routes_premium.py</code> (UPDATE/DELETE of others' premium routes) and <code>routes_routes.py</code> (sharing others' routes).</p>
+    <p><strong>To fix it you need:</strong></p>
+    <ol>
+      <li>Add <code>user_id</code> to the model (POI, Place, etc.) if there will be owners.</li>
+      <li>In each PUT/DELETE/SHARE, verify ownership and return 403 otherwise.</li>
+    </ol>
+    <p>This is one of the most typical security critiques in junior projects — fixing it in this project will stick with you forever.</p>
+
+    <h3>2.9 The password recovery token doesn't expire</h3>
+    <pre><code>{`# src/api/routes_recover.py:20
+token = secrets.token_urlsafe(32)
+user.recovery_token = token`}</code></pre>
+    <p>You generated a cryptographically secure token, which is perfect. But it lacks an expiration date. If someone intercepts that email once, they can use the token weeks later. I suggest adding <code>user.recovery_token_expires_at = datetime.utcnow() + timedelta(minutes=15)</code> and validating in <code>reset_password</code> that the date hasn't passed.</p>
+
+    <h3>2.10 The email link doesn't match the frontend route</h3>
+    <pre><code>{`# src/api/routes_recover.py:24
+reset_link = f"{os.getenv('FRONTEND_URL')}/reset-password/{token}"`}</code></pre>
+    <p>But in <code>layout.jsx:58</code> the router only knows <code>/reset-password</code>. The email takes the user to <code>/reset-password/abc123</code> and they land on "Not found".</p>
+    <ul>
+      <li><strong>Option A (recommended):</strong> change the router to <code>/reset-password/:token</code> (you're already reading the <code>token</code> with <code>useParams()</code> in <code>resetPassword.jsx:9</code>, so this works immediately).</li>
+      <li><strong>Option B:</strong> change the email to use <code>?token=...</code> and read it with <code>useSearchParams</code>.</li>
+    </ul>
+
+    <h2>3. Review by dimensions</h2>
+
+    <h3>Dimension 1 — Structure · Level 2</h3>
+    <p><strong>What's working:</strong> clear separation between <code>src/api</code> and <code>src/front</code>. Folders <code>views/</code>, <code>component/</code>, <code>store/</code>, <code>styles/</code>.</p>
+    <p><strong>Small improvements:</strong></p>
+    <ul>
+      <li>Unify the auth systems (see 2.5).</li>
+      <li>Decide on a single <code>create_app()</code> and remove the other (see 2.1).</li>
+      <li>In <code>src/api/routes_places.py</code> the comment says "the Places module is temporarily disabled (missing Place model)" but <code>Place</code> <strong>does exist</strong> in <code>models.py:40</code>. You're probably carrying an old comment — update it or delete the file.</li>
+      <li><code>src/api/premium.py</code> looks like an old version of <code>routes_premium.py</code> with a broken import. Can be eliminated.</li>
+    </ul>
+    <p><strong>To reach level 3:</strong> single source per responsibility and zero orphaned files.</p>
+
+    <h3>Dimension 2 — Frontend · Level 2</h3>
+    <p><strong>What's working:</strong> correct use of <code>useState</code>/<code>useEffect</code>/<code>useContext</code>. Separated views. Reasonably small components (with one exception).</p>
+    <p><strong>Areas to polish:</strong></p>
+    <ol>
+      <li><strong><code>map.jsx</code> has gotten large</strong> (405 lines). Mixes mission logic, route creation, two modals, and saved routes list. Extracting <code>MissionPanel</code>, <code>RouteCreatorPanel</code>, and <code>SavedRoutesPanel</code> will make the parent component much more readable.</li>
+      <li><strong><code>MapView.jsx:18</code> creates the icon on every render.</strong> The icon doesn't depend on props or state, so extract it outside the component or wrap it in <code>useMemo</code>. A detail, but reflects attention to immutability.</li>
+      <li><strong>Inline styles and CSS classes coexist in the same file.</strong> Either option is valid; what matters is consistency. For reusable pieces, CSS classes scale better.</li>
+      <li><strong>Events on <code>&lt;span&gt;</code> without accessibility</strong> — not keyboard-navigable and lacks a semantic role. Use <code>&lt;Link&gt;</code> from React Router or a <code>&lt;button&gt;</code>.</li>
+      <li><strong><code>alert()</code> and <code>confirm()</code> for feedback</strong> — they block the thread and break the cinematic style you cared for elsewhere. A toast or custom modal fits the ShadowMap aesthetic much better.</li>
+      <li><strong><code>useEffect</code> with <code>// eslint-disable-next-line react-hooks/exhaustive-deps</code>:</strong> silencing the rule is sometimes necessary, but add a comment explaining why. Otherwise, in six months even you won't know if it was intentional.</li>
+    </ol>
+
+    <h3>Dimension 3 — Backend · Level 2</h3>
+    <p><strong>What's working:</strong> separated Blueprints, models with consistent <code>serialize()</code>, <code>@jwt_required()</code> decorators where they belong.</p>
+    <p><strong>Areas to polish:</strong></p>
+    <ol>
+      <li><strong><code>extensions.py</code> and <code>utils.py</code> implement the same thing twice.</strong> Keep one (the <code>Mailer</code> class integrates better with Flask) and delete the other.</li>
+      <li><strong><code>print()</code> for logging</strong> — convenient in development, lost or messy in production. The <code>logging</code> module with levels is the standard.</li>
+      <li><strong>HTML embedded in Python code</strong> — if you ever want to redesign the email, you edit Python to touch styles. Better move to a template file (<code>flask.render_template</code>).</li>
+      <li><strong>Very basic input validation</strong> — checks presence but not email format, password minimum length, or shortname rules. Marshmallow or Pydantic solve this with minimal code and raise perceived quality significantly.</li>
+    </ol>
+
+    <h3>Dimension 4 — State and communication · Level 2</h3>
+    <p>Already covered in 2.5 (two auth systems). Additional details:</p>
+    <ul>
+      <li><strong>Two keys for localStorage "saved routes"</strong> — <code>flux.js:147</code> uses <code>"savedRoutes_local"</code> and <code>RoutesManager.jsx:4</code> uses <code>"shadowmap_saved_routes"</code>. If both run in parallel, each sees a different set and data desynchronises. Unify to a single key.</li>
+      <li><strong><code>API_URL</code> defined in two places</strong> — <code>authService.js:3</code> uses <code>VITE_API_URL</code> and <code>flux.js:4</code> imports from <code>../../api/config.js</code>. Centralise in one.</li>
+      <li><strong>Frontend reads <code>user.is_premium</code></strong> (<code>profile.jsx:74</code>) but backend doesn't send the field. The "Premium Account" badge won't render correctly until you fix 2.3.</li>
+    </ul>
+
+    <h3>Dimension 5 — Security · Level 1</h3>
+    <p>See critiques 2.6 (JWT secret), 2.7 (CORS), 2.8 (ownership), and 2.9 (token expiration). Actionable list:</p>
+    <ul>
+      <li>Move <code>JWT_SECRET_KEY</code> to <code>.env</code> (and add to <code>.env.example</code>).</li>
+      <li>Restrict origins in CORS.</li>
+      <li>Verify ownership in PUT/DELETE endpoints.</li>
+      <li>Add expiration to <code>recovery_token</code>.</li>
+      <li>Validate minimum password length (8 characters is fine).</li>
+      <li>Consider rate-limiting with Flask-Limiter on login/register/recover.</li>
+    </ul>
+    <blockquote>
+      <p>On JWT in <code>localStorage</code>: this is what 4Geeks teaches and is acceptable for bootcamp. To explore further, <code>HttpOnly</code> cookies are the professional way, but outside this project's scope.</p>
+    </blockquote>
+
+    <h3>Dimension 6 — Functionality end-to-end · Level 2</h3>
+    <p>Honest summary of what works and what doesn't:</p>
+    <ul>
+      <li>Registration: works.</li>
+      <li>Login: works.</li>
+      <li>Activate Premium: fails in backend (see 2.3).</li>
+      <li>Place management (Add/Edit/Delete): actions don't exist (see 2.4).</li>
+      <li>Create and publish paranormal route: "Share" button in <code>map.jsx:177</code> has no <code>onClick</code>; <code>RouteCreator.jsx:16</code> calls non-existent action.</li>
+      <li>Password recovery via email: flow breaks at the link (see 2.10).</li>
+      <li>Missions (complete locally): works, though persists only in <code>localStorage</code>.</li>
+    </ul>
+    <p><strong>The good:</strong> most are small, localised fixes. You're not far from having a fullstack app that demos well in an interview.</p>
+
+    <h3>Dimension 7 — Git, docs · Level 2</h3>
+    <ul>
+      <li>Some commits have vague messages (<code>030526B</code>, <code>daa644a 030526B</code>). Conventional Commits is a clean professional convention: <code>feat:</code>, <code>fix:</code>, <code>docs:</code>, <code>refactor:</code>, <code>chore:</code>.</li>
+      <li><code>.env.example</code> doesn't include variables your code uses: <code>JWT_SECRET_KEY</code>, <code>SENDGRID_API_KEY</code>, <code>SENDGRID_FROM_EMAIL</code>, <code>FRONTEND_URL</code>. Someone cloning your repo won't know what to configure.</li>
+      <li>The README is visually careful and has narrative — major plus.</li>
+      <li>README doesn't explain running the backend beyond <code>pipenv run start</code>. Missing: where <code>.env</code> goes, how to run migrations, how to create the first user, which Python version.</li>
+    </ul>
+
+    <h3>Dimension 8 — UX, accessibility · Level 2</h3>
+    <ul>
+      <li>Replacing <code>alert()</code>/<code>confirm()</code> with custom toasts/modals would fit beautifully with your aesthetic.</li>
+      <li>Generic error messages like <code>"Error creating place"</code> can be more specific (<code>"Latitude and longitude required"</code>).</li>
+      <li>Missing loading states in most forms — even a simple spinner improves perception.</li>
+      <li>Inputs without <code>htmlFor</code>/<code>id</code> linked to labels — affects accessibility.</li>
+      <li>Click handlers on <code>&lt;span&gt;</code> for navigation — use <code>&lt;Link&gt;</code> or <code>&lt;button&gt;</code>.</li>
+    </ul>
+    <blockquote>
+      <p>Your palette, typography, and animations are very good. It's a shame user feedback uses standard browser components.</p>
+    </blockquote>
+
+    <h3>Dimension 9 — Tests · Level 1</h3>
+    <p>No tests yet. ESLint is configured, which is a good start.</p>
+    <p><strong>What would earn you major points with minimal effort:</strong></p>
+    <ul>
+      <li>5–10 tests with <code>pytest</code> covering: valid registration, duplicate email, valid login, wrong credentials, accessing a protected endpoint without a token, POI creation.</li>
+      <li>Remove <code>// eslint-disable-next-line</code> comments without justification.</li>
+    </ul>
+
+    <h3>Dimension 10 — DevOps · Level 2</h3>
+    <ul>
+      <li><code>Procfile</code>, <code>render.yaml</code>, <code>Dockerfile.render</code> present.</li>
+      <li>Scripts <code>npm run start</code>, <code>npm run build</code> correct.</li>
+      <li><code>.env.example</code> incomplete (see Dimension 7).</li>
+      <li>Both <code>requirements.txt</code> and <code>Pipfile</code> exist. Pick one — <code>Pipfile</code> since you're already using it.</li>
+      <li><code>routes_health.py</code> exists but doesn't seem connected to the healthcheck in <code>render.yaml</code>.</li>
+    </ul>
+
+    <h3>Dimension 11 — Originality and design · Level 3</h3>
+    <p>Here is where you shine most, so I save it for last. The concept "ShadowMap = paranormal registry that watches you" has <strong>its own identity</strong>. The README copy, avatars with lore, names ("Identity Re-Stabilization", "Dark Route"), the final warning in the README… everything is cared for.</p>
+    <p>This is what a recruiter remembers. When they receive 30 projects called "TaskApp" or "WeatherForecast", yours is <strong>the haunted app</strong>. <strong>Cherish it and don't underestimate it.</strong> If the technical side reaches the design's level, this project is genuinely memorable.</p>
+
+    <h2>4. Prioritised action plan</h2>
+
+    <h3>🔴 Urgent (without these, parts of the project don't work)</h3>
+    <ol>
+      <li>Add <code>is_premium</code> to <code>User</code> model + migration (see 2.3).</li>
+      <li>Delete <code>src/api/routes.py</code> (the one with <code>"fake-token"</code>) and <code>src/api/premium.py</code> (duplicate).</li>
+      <li>Decide on a single <code>create_app()</code> and remove the other (see 2.1).</li>
+      <li>Implement missing actions in <code>flux.js</code> <strong>or</strong> remove views that call them (see 2.4).</li>
+      <li>Move <code>JWT_SECRET_KEY</code> to <code>.env</code> (see 2.6).</li>
+      <li>Fix email link mismatch vs <code>/reset-password</code> route (see 2.10).</li>
+      <li>Pick one auth system and delete the other (see 2.5).</li>
+    </ol>
+
+    <h3>🟠 Important (moves you from "passing" to "good")</h3>
+    <ol start="8">
+      <li>Add <code>user_id</code> to <code>POI</code>/<code>Place</code> and verify ownership in PUT/DELETE.</li>
+      <li>Centralise <code>API_URL</code>.</li>
+      <li>Unify localStorage key for routes.</li>
+      <li>Replace <code>alert()</code>/<code>confirm()</code> with custom toasts or modals.</li>
+      <li>Restrict origins in CORS.</li>
+      <li>Add expiration to <code>recovery_token</code>.</li>
+      <li>Complete <code>.env.example</code> with all variables your code uses.</li>
+      <li>Update README with environment variables section, migrations, troubleshooting.</li>
+    </ol>
+
+    <h3>🟢 Excellence (takes you to honours)</h3>
+    <ol start="16">
+      <li>Split <code>map.jsx</code> into smaller components.</li>
+      <li>Move email HTML to a template.</li>
+      <li>Add tests with <code>pytest</code> (minimum 5–10 on critical flows).</li>
+      <li>Configure GitHub Actions with <code>pytest</code> + <code>eslint</code>.</li>
+      <li>Input validation with Marshmallow or Pydantic.</li>
+      <li>Replace <code>print</code> with <code>logging</code>.</li>
+      <li>Consider React Query / SWR for fetches.</li>
+    </ol>
+    <blockquote>
+      <p><strong>Practical recommendation:</strong> open a branch per block (<code>fix/critical-issues</code>, <code>feat/ownership-and-security</code>, etc.). You'll end up with a Git history that's great to show in interviews.</p>
+    </blockquote>
+
+    <h2>5. Reference grade</h2>
+    <blockquote>
+      <p>This grade is a proposal based on the current state of the code. If you self-evaluate and arrive at a similar score, that's an excellent sign: your technical judgement is already calibrated.</p>
+    </blockquote>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Dimension</th><th>Weight</th><th>Level</th><th>Points</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Structure</td><td>8%</td><td>2</td><td>4.00</td></tr>
+        <tr><td>2</td><td>Frontend</td><td>15%</td><td>2</td><td>7.50</td></tr>
+        <tr><td>3</td><td>Backend</td><td>15%</td><td>2</td><td>7.50</td></tr>
+        <tr><td>4</td><td>State / API</td><td>10%</td><td>2</td><td>5.00</td></tr>
+        <tr><td>5</td><td>Security</td><td>15%</td><td>1</td><td>3.75</td></tr>
+        <tr><td>6</td><td>Functionality</td><td>10%</td><td>2</td><td>5.00</td></tr>
+        <tr><td>7</td><td>Git / Docs</td><td>5%</td><td>2</td><td>2.50</td></tr>
+        <tr><td>8</td><td>UX / Accessibility</td><td>8%</td><td>2</td><td>4.00</td></tr>
+        <tr><td>9</td><td>Tests</td><td>5%</td><td>1</td><td>1.25</td></tr>
+        <tr><td>10</td><td>DevOps</td><td>5%</td><td>2</td><td>2.50</td></tr>
+        <tr><td>11</td><td>Originality</td><td>4%</td><td>3</td><td>3.00</td></tr>
+        <tr><td><strong>Total</strong></td><td></td><td><strong>100%</strong></td><td></td><td><strong>≈ 46 / 100</strong></td></tr>
+      </tbody>
+    </table>
+    <p><strong>Honest reading:</strong> you're not yet at the passing threshold, but the gap is very small. With the 🔴 block (~1 day of focused work) you probably jump to 55–60. With the 🟠 block (3–4 days) to 70–80. The 🟢 block takes you to honours.</p>
+    <p>The important thing is you don't need to rewrite the project. You need to <strong>finish it</strong>.</p>
+
+    <h2>6. Final message</h2>
+    <p>Your project has something many bootcamp projects <strong>don't have</strong>: soul. The narrative, the details, the theming, the copy… that matters a lot and isn't taught. When a recruiter opens your repo, they'll remember yours.</p>
+    <p>What this review is asking isn't "do it all over." It's asking you to <strong>finish what you started</strong>. 80% of real junior dev work is exactly this: finding the missing <code>is_premium</code> fields, the unimplemented <code>createPlace</code>, the hardcoded <code>JWT_SECRET_KEY</code>, and solving them before a user or teammate finds them.</p>
+    <p>If you focus on the 🔴 block for a day and then review this document again, you'll see progress very clearly. And when you reach the 🟢 level, your portfolio will have a project worth talking about in interviews.</p>
+    <p><strong>Trust what you already did well. Finish it. You're closer than you think.</strong></p>
+
+    <hr />
+
+    <p>
+      <a href="/">← Back to the home page</a>
+    </p>
+  </article>
+</Layout>
