@@ -23,5 +23,8 @@ pnpm-debug.log*
 .idea/
 .DS_Store
 
+# claude-code local working dir
+.claude/
+
 # astro
 .astro/

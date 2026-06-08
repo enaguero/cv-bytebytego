@@ -1,164 +1,150 @@
 # cv-bytebytego
 
-A one-page CV / portfolio targeted at the ByteByteGo part-time instructor role,
-built as live evidence for the AI tracks I want to teach.
+> A one-page application for a part-time teaching role at [ByteByteGo](https://bytebytego.com), built openly with Claude Code so the work itself is the demo.
 
-The site is an Astro app served by a small Node server, packaged as a Docker
-image. The "Ask my CV" chat is a server endpoint that calls the Claude API with
-the CV as system context — so the page itself is a production AI integration,
-not just a description of one.
+**Live site:** https://cv-bytebytego.vercel.app
+**Author:** Erwin Agüero · [enaguero@gmail.com](mailto:enaguero@gmail.com) · [GitHub](https://github.com/enaguero) · [LinkedIn](https://www.linkedin.com/in/enaguero/)
+
+The site presents a teaching journey (university TA → 4Geeks Academy → Python book → ByteByteGo), three areas I'd love to teach (System Design, Agentic AI Coding, AI Automation), and a small live chat that calls Claude with my CV as system context — the same pattern I'd use in lesson one of the Agentic AI track.
+
+---
+
+## How AI was used to build this — honest version
+
+The site is meant to *demonstrate* agentic AI work, not just describe it, so being honest about the build is part of the deliverable.
+
+- **Pair programming with Claude Code.** Every commit that involved Claude carries a `Co-Authored-By: Claude` line in the message. Skim the [commit history](https://github.com/enaguero/cv-bytebytego/commits/main) for the trail.
+- **Iterative editing.** I drove direction (tone, structure, what to keep humble); Claude scaffolded components, suggested CSS approaches, drafted copy I then rewrote.
+- **The sample formative review** at [`/sample-review`](https://cv-bytebytego.vercel.app/sample-review) was AI-drafted by Claude reading the student's repository, then reviewed line-by-line by me — correcting misreads, sharpening framing, personalising the message. The page itself ([How this was written](https://cv-bytebytego.vercel.app/sample-review#how-this-was-written)) is explicit about this.
+- **The English translation** of that Spanish-language review was also AI-assisted; I reviewed it.
+- **The "Ask my CV" chat** is a live Claude endpoint — readers can interrogate the CV directly. It's instructed to admit when it doesn't know.
+
+What AI didn't do: it didn't have opinions about my career, write the teaching journey from imagination, or invent any of the differentiators on the "Why me" section. Those came from me; Claude helped me phrase them.
 
 ---
 
 ## Stack
 
-- **Astro 5** — server-rendered with `@astrojs/node` (standalone)
-- **Tailwind CSS 4** — CSS-first config in `src/styles/global.css`
-- **Anthropic SDK** — `claude-sonnet-4-6` for the Ask-my-CV endpoint
-- **Docker** — multi-stage build → minimal Alpine runtime, non-root, healthcheck
-- **GitHub** — source of truth; deploy targets are anywhere that runs containers
-  (Fly.io, Railway, Render, Cloud Run, Vercel Container, your own VPS)
+- **[Astro 5](https://astro.build)** — server-rendered.
+- **[Tailwind CSS 4](https://tailwindcss.com)** — CSS-first config in `src/styles/global.css`.
+- **[Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript)** — `claude-sonnet-4-6` for the chat endpoint.
+- **Dual adapter:** [`@astrojs/vercel`](https://docs.astro.build/en/guides/integrations-guide/vercel/) for production, [`@astrojs/node`](https://docs.astro.build/en/guides/integrations-guide/node/) for Docker / local dev. `astro.config.mjs` switches automatically on `process.env.VERCEL`.
+- **[Vercel Analytics](https://vercel.com/docs/analytics) + [Speed Insights](https://vercel.com/docs/speed-insights)** — official `<Analytics />` / `<SpeedInsights />` Astro components.
+- **Docker** — multi-stage Alpine build, non-root user, healthcheck.
 
 ## Project layout
 
 ```
 src/
   pages/
-    index.astro          ← main page (composes the components)
-    api/ask.ts           ← POST endpoint, calls Claude with CV as context
+    index.astro             ← composes the home page
+    sample-review.astro     ← long-form formative review (translated)
+    api/ask.ts              ← POST endpoint, calls Claude with CV as context
   components/
     Hero.astro
-    Tracks.astro
-    Evidence.astro
-    AskMyCV.astro        ← chat widget (vanilla JS, no framework)
+    TeachingJourney.astro   ← timeline of teaching arc
+    WhyMe.astro             ← differentiators + opening quote
+    Tracks.astro            ← the three ByteByteGo tracks
+    Evidence.astro          ← teaching artifacts + how-I-teach
+    AskMyCV.astro           ← chat widget (vanilla JS, no framework)
     Contact.astro
-  data/cv.ts             ← single source of truth for all CV content
-  layouts/Layout.astro
-  styles/global.css      ← Tailwind 4 + design tokens
-public/favicon.svg
-Dockerfile               ← multi-stage build
-docker-compose.yml       ← one-command local run
-.dockerignore
+  data/cv.ts                ← single source of truth — UI + AI grounding
+  layouts/Layout.astro      ← shared <html> shell, Analytics, Speed Insights
+  styles/global.css         ← Tailwind 4 tokens + prose styles
+astro.config.mjs            ← dual adapter (Vercel | Node)
+Dockerfile                  ← multi-stage Node 22 / Alpine
+docker-compose.yml          ← reads ANTHROPIC_API_KEY from the shell
+Makefile                    ← `make up`, `make dev`, etc.
 ```
 
-To change the CV content, edit `src/data/cv.ts` and rebuild the image.
+Editing `src/data/cv.ts` updates both the visible page and the chat's grounding context.
 
-## Quickstart — see it on localhost in one command
+---
+
+## Run locally
+
+### 1. Set the API key once
+
+The chat endpoint needs an Anthropic API key. The recommended flow is [direnv](https://direnv.net/):
 
 ```bash
-make up        # builds the image, starts the container, streams logs
-               # → http://localhost:4321
+cp .envrc.example .envrc           # template
+$EDITOR .envrc                     # paste your real key from console.anthropic.com
+direnv allow                       # auto-exports on cd into the project
 ```
 
-Ctrl-C to stop. First run creates `.env` from `.env.example` automatically;
-you only need to drop in a real `ANTHROPIC_API_KEY` for the chat to work.
-
-### All `make` targets
+Without direnv:
 
 ```bash
-make            # show help (this list)
-make up         # build + start, foreground, Ctrl-C to stop
-make up-d       # build + start, detached, returns your prompt
-make down       # stop and remove the container
-make restart    # down + up-d
-make logs       # tail container logs
-make ps         # show container status
-make sh         # shell into the running container
-make health     # curl the site and print HTTP status + page title
-make clean      # down + remove the image
-make dev        # native Astro dev server (no Docker, hot reload)
+source .envrc
 ```
 
-### Without make (plain docker compose)
+The key never enters the Docker image, never lands in git (`.envrc` is gitignored), and `docker-compose.yml` injects it from the shell at run time.
+
+### 2. Start the site
+
+Pick one:
 
 ```bash
-cp .env.example .env       # fill in ANTHROPIC_API_KEY
-docker compose up --build  # http://localhost:4321
+make up        # docker, foreground, logs visible, Ctrl-C to stop
+make up-d      # docker, detached
+make dev       # native Astro dev server, hot reload (no Docker)
 ```
 
-### Without docker (plain Node)
+All three serve at <http://localhost:4321>. The Makefile fails fast with a helpful error if `ANTHROPIC_API_KEY` isn't exported.
 
-```bash
-npm install
-cp .env.example .env       # fill in ANTHROPIC_API_KEY
-npm run dev                # http://localhost:4321 with hot reload
+### Other `make` targets
+
+```
+make help     # show this list
+make down     # stop & remove containers
+make logs     # tail container logs
+make ps       # container status
+make sh       # shell into the running container
+make health   # curl /, print status + title
+make clean    # down + remove the image
 ```
 
-The chat returns a 503 with a clear message if `ANTHROPIC_API_KEY` is missing.
-The static page works without it.
+---
 
-### What's in the image
+## Deploy
 
-- Base: `node:22-alpine`
-- 4 stages: `deps` → `builder` → `prod-deps` → `runtime`
-- Runs as non-root user `app`
-- Built-in `HEALTHCHECK` hits `/` every 30s
-- Final size: ~580MB (most of it is Node + Astro + Anthropic SDK)
+### Vercel (production)
 
-## Deploy targets
+1. Import the repo at <https://vercel.com/new>.
+2. Astro is auto-detected; defaults are correct.
+3. Add `ANTHROPIC_API_KEY` (and optionally `ASK_DAILY_LIMIT`) under Environment Variables.
+4. Deploy. Every push to `main` redeploys.
+5. Enable **Analytics** and **Speed Insights** on the project tabs — the components are already wired up.
 
-Pick one — they all take the same image:
+The Vercel adapter takes over because Vercel sets `VERCEL=1` during its build.
 
-### Fly.io (recommended for a quick public URL)
+### Any Docker host (Fly, Railway, Render, Cloud Run, etc.)
+
+The `Dockerfile` produces a minimal Node-server image. The Node adapter takes over when `VERCEL` isn't set.
+
 ```bash
-fly launch              # uses the Dockerfile, asks a few questions
+# Fly example
+fly launch
 fly secrets set ANTHROPIC_API_KEY=sk-ant-...
 fly deploy
 ```
 
-### Railway
-1. New Project → Deploy from GitHub repo
-2. Railway detects the Dockerfile automatically
-3. Variables tab → add `ANTHROPIC_API_KEY`
-4. Push to `main` → auto-deploy
-
-### Render
-1. New → Web Service → connect repo
-2. Runtime: **Docker** (auto-detected)
-3. Environment → add `ANTHROPIC_API_KEY`
-
-### Google Cloud Run
-```bash
-gcloud run deploy cv-bytebytego \
-  --source . \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars ANTHROPIC_API_KEY=sk-ant-...
-```
-
-### Push to a registry
-```bash
-docker tag cv-bytebytego:local ghcr.io/enaguero/cv-bytebytego:latest
-docker push ghcr.io/enaguero/cv-bytebytego:latest
-```
+---
 
 ## Environment variables
 
-| Var | Required | Default | Purpose |
-| --- | --- | --- | --- |
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
 | `ANTHROPIC_API_KEY` | yes (for chat) | — | Key from console.anthropic.com |
 | `ASK_DAILY_LIMIT` | no | `100` | Per-IP daily cap on chat requests |
-| `PORT` | no | `4321` | Server listen port |
-| `HOST` | no | `0.0.0.0` | Bind interface |
+| `PORT` | no | `4321` | Server listen port (Node adapter only) |
+| `HOST` | no | `0.0.0.0` | Bind interface (Node adapter only) |
 
-## Notes on the chat endpoint
+The static page renders without the key; only the chat returns a 503 with a clear message.
 
-- Rate-limited per IP per day, in-memory. Resets when the container restarts.
-  Fine for a CV demo — for real production use Redis + a sliding-window limiter.
-- System prompt + CV are injected from `src/data/cv.ts` so there's a single
-  source of truth between the visible page and the AI grounding.
-- Conversation history is trimmed to the last 10 messages.
-- Model: `claude-sonnet-4-6`. Switch in `src/pages/api/ask.ts` if you want
-  Opus for higher quality (≈10× cost) or Haiku for lower cost.
-
-## What this demonstrates for ByteByteGo
-
-| Track | Evidence on this page |
-| --- | --- |
-| System Design | Static frontend → containerized Node server → external LLM API. Multi-stage Docker build, non-root runtime, healthcheck, env-driven config, rate limiting, single source of truth between UI and AI grounding. |
-| Agentic AI Coding | The entire repo was built collaboratively with Claude Code. `git log` shows the agent-driven build. |
-| AI Automation | Build → ship → run as one `docker compose up`. The pipeline IS a Day-1 automation lesson. |
+---
 
 ## License
 
-MIT — feel free to fork as a template for your own CV.
+MIT — feel free to fork as a template for your own application page.
