@@ -1,0 +1,63 @@
+---
+const differentiators = [
+  {
+    title: "Senior engineer who teaches — not the inverse",
+    body:
+      "Teaching is informed by current production work (Hurdle today, Zappi and Babylon Health before that). The examples I reach for are from systems I've actually shipped this year, not a textbook I read once.",
+  },
+  {
+    title: "Long-form formative reviews, not pass/fail grading",
+    body:
+      "When a student hands me a project, they get a structured, code-cited review with a prioritised plan — not a score. There's a real sample of one on this site.",
+  },
+  {
+    title: "Bilingual teaching (Spanish ↔ English)",
+    body:
+      "Cohorts at 4Geeks are bilingual; my course companion repo is published in both languages. Useful for global cohorts and for Spanish-speaking learners who otherwise get worse material.",
+  },
+  {
+    title: "Builds learning artifacts in the open",
+    body:
+      "The Python book, the cohort companion repo, this very site — all public, all iterated on. Teaching is a craft I keep working at, not a side gig I switch on twice a month.",
+  },
+];
+---
+
+<section id="why-me" class="mx-auto max-w-6xl px-6 py-16 sm:py-20">
+  <div class="max-w-3xl">
+    <p class="section-title">Why me</p>
+    <h2 class="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight">
+      A fair question — let me answer it directly.
+    </h2>
+
+    <blockquote class="mt-6 border-l-2 border-[color:var(--color-accent-warm)] pl-4 text-lg text-[color:var(--color-text)] leading-relaxed">
+      Honestly, I love teaching. I find helping people understand something
+      new genuinely rewarding — that's been the constant through TA work at
+      university, six years at 4Geeks Academy, and now writing a Python
+      handbook in my spare time.
+    </blockquote>
+
+    <p class="mt-6 text-[color:var(--color-text-muted)] leading-relaxed">
+      If you'd like the bullet-point version of what sets me apart from
+      another bootcamp instructor:
+    </p>
+  </div>
+
+  <ul class="mt-8 grid gap-4 md:grid-cols-2">
+    {
+      differentiators.map((d, i) => (
+        <li class="flex gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/60 p-5">
+          <span class="mt-0.5 font-mono text-sm text-[color:var(--color-accent-warm)] shrink-0">
+            0{i + 1}
+          </span>
+          <div>
+            <p class="font-medium text-[color:var(--color-text)]">{d.title}</p>
+            <p class="mt-1 text-sm text-[color:var(--color-text-muted)] leading-relaxed">
+              {d.body}
+            </p>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</section>

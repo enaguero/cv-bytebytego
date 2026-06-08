@@ -107,12 +107,13 @@ export const tracks = [
     title: "Agentic AI Coding",
     tagline: "I use Claude Code daily and have notes from the failures.",
     summary:
-      "I've been working with Claude Code as a day-to-day collaborator for several months across personal projects and work tasks. This site was scaffolded that way — the commits are honest about what I prompted, what I had to redo, and where the agent went off the rails. I'd teach from that same place: practical workflows, real failure modes, and the parts I'm still figuring out.",
+      "I've been working with Claude Code as a day-to-day collaborator for several months across personal projects and work tasks. This site was scaffolded that way — the commits at github.com/enaguero/cv-bytebytego are honest about what I prompted, what I had to redo, and where the agent went off the rails. I'd teach from that same place: practical workflows, real failure modes, and the parts I'm still figuring out.",
     bullets: [
       "Day-to-day use across personal and work projects",
       "Familiar with Claude Code, MCP tooling, structured prompts and plans",
       "Comfortable being explicit about what I still get wrong",
     ],
+    repo: "https://github.com/enaguero/cv-bytebytego",
   },
   {
     id: "ai-automation",
@@ -142,10 +143,10 @@ export const teachingArtifacts = [
   },
   {
     title: "Formative review of a student's final project",
-    role: "Code review style I use with learners",
+    role: "Agentic AI + my pedagogy, worked example",
     description:
-      "A long-form review I wrote for a bootcamp student's capstone (ShadowMap). It opens by celebrating what's working, separates urgent fixes from polish from excellence, and grades across 11 dimensions with code citations. I keep the tone honest but rooted in 'you're closer than you think' — the goal is for the student to leave with a plan, not a wound.",
-    metrics: ["11 dimensions", "Prioritised action plan", "Encouraging but precise"],
+      "A long-form review for a bootcamp student's capstone (ShadowMap). Claude read the student's repo and produced a first-draft review; I then went line-by-line — correcting misreads, sharpening the framing, and personalising the message — before sending it. It opens by celebrating what's working, separates urgent fixes from polish from excellence, and grades across 11 dimensions with code citations.",
+    metrics: ["11 dimensions", "Prioritised action plan", "AI-drafted, human-refined"],
     link: "/sample-review",
     quote:
       "This document is a review of your project designed so you learn, not so you get discouraged.",
@@ -219,6 +220,16 @@ export function asAssistantContext(): string {
     ``,
     `How Erwin teaches:`,
     ...howITeach.map((h) => `- ${h.title} ${h.body}`),
+    ``,
+    `Why Erwin and not another bootcamp teacher:`,
+    `- He genuinely loves teaching — finds helping people understand new things rewarding (his words).`,
+    `- Senior production engineer who teaches, not the inverse — examples come from systems he ships today.`,
+    `- Writes long-form formative code reviews instead of pass/fail grades.`,
+    `- Bilingual (Spanish/English); cohort material is published in both.`,
+    `- Builds learning artifacts in the open (Python book, course repos, this site).`,
+    ``,
+    `Transparency note about the sample formative review on /sample-review:`,
+    `Claude produced the first draft by reading the student's repo. Erwin reviewed line by line, corrected misreads, sharpened framing, personalised the message, then sent it. The English version is an AI-assisted translation Erwin reviewed.`,
     ``,
     `Tone guidance for the assistant: humble, specific, never boastful. Quote concrete artifacts when asked. If a question is outside the CV, say so plainly.`,
   ].join("\n");

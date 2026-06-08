@@ -40,6 +40,16 @@ import { tracks } from "~/data/cv";
               </li>
             ))}
           </ul>
+          {t.repo && (
+            <a
+              href={t.repo}
+              target="_blank"
+              rel="noopener"
+              class="mt-4 inline-flex items-center gap-1 text-xs font-mono text-[color:var(--color-accent-2)] hover:text-white transition break-all"
+            >
+              ↗ {t.repo.replace("https://", "")}
+            </a>
+          )}
         </article>
       ))
     }
