@@ -36,6 +36,9 @@ body {
   color: var(--color-text);
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
+  /* Defensive: prevent any single overflowing element from breaking the
+     entire page width on mobile. Inner containers can still scroll. */
+  overflow-x: hidden;
 }
 
 /* Subtle grid behind hero — softened. */
@@ -190,6 +193,7 @@ body {
   padding: 0.1rem 0.35rem;
   border-radius: 0.3rem;
   color: var(--color-accent);
+  overflow-wrap: anywhere;
 }
 .prose-review pre {
   background: rgba(0, 0, 0, 0.35);
@@ -269,6 +273,9 @@ body {
   font-size: 0.92rem;
   line-height: 1.5;
   white-space: pre-wrap;
+  /* Long URLs or unbroken strings in AI replies should wrap instead of
+     pushing the chat container wider on mobile. */
+  overflow-wrap: anywhere;
 }
 
 .typing-dot {
